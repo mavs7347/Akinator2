@@ -32,7 +32,7 @@ private:
     //Font
         sf::Font font;
     //QuestionAnswer
-        sf::Text *questionAnswer;
+        sf::Text *questionAnswer, *nQuestion;
     //Reset
         sf::Text *reset, *exit;
     //Buttons
@@ -83,6 +83,7 @@ public:
         delete background;
         delete imgBackground;
         delete questionAnswer;
+        delete nQuestion;
         delete reset;
         delete exit;
         delete buttonYesQA;
@@ -101,9 +102,14 @@ public:
                 new_nodeRoot->root = *&tree;
                 tree = new_nodeRoot;
             }
+        //NumberQ
+            std::string nQA = std::to_string(count);
+            nQuestion = new sf::Text(nQA, font, 33);
+            nQuestion->setPosition(18, 150);
+            nQuestion->setFillColor(sf::Color(255, 255, 255));
         //Question
             questionAnswer = new sf::Text(tree->date, font, 33);
-            questionAnswer->setPosition(20, 150);
+            questionAnswer->setPosition(42, 150);
             questionAnswer->setFillColor(sf::Color(255, 255, 255));
         //LoopWindow
         while (renderWindow->isOpen()) {
@@ -123,6 +129,7 @@ public:
             //Draw
                 renderWindow->clear(sf::Color::Cyan);
                 renderWindow->draw(*background);
+                renderWindow->draw(*nQuestion);
                 renderWindow->draw(*questionAnswer);
                 renderWindow->draw(*reset);
                 renderWindow->draw(*exit);
@@ -133,7 +140,7 @@ public:
                 if (gameOver == 1) {
                     Sleep(3000);
                     gameOver = 0;
-                    showWindow(*&tree->root, 0);
+                    showWindow(*&tree->root, 1);
                 }
             //Events
                 while (renderWindow->pollEvent(eventWindow)) {
@@ -163,16 +170,14 @@ public:
                                     Node *new_nodeR = createNode(answer, *&tree->root);
                                     tree->right = new_nodeR;
                                     //Reset
-                                    gameOver = 0;
-                                    showWindow(*&tree->root, 0);
+                                    showWindow(*&tree->root, 1);
                                 }
                                 else {
                                     showWindow(tree->left, count+1);
                                 }
                             }
                             else if(reset->getGlobalBounds().contains(sf::Vector2f(sf::Mouse::getPosition(*renderWindow)))) {
-                                gameOver = 0;
-                                showWindow(*&tree->root, 0);
+                                showWindow(*&tree->root, 1);
                             }
                             else if(exit->getGlobalBounds().contains(sf::Vector2f(sf::Mouse::getPosition(*renderWindow)))) {
                                 goodbye();
@@ -195,6 +200,6 @@ public:
 int main() {
     system("cls");
     Window *window = new Window();
-    window->showWindow(NULL, 0);
+    window->showWindow(NULL, 1);
     return 0;
 }
