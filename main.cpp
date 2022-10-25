@@ -1,6 +1,7 @@
 #include <iostream>
 #include <windows.h>
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 
 class Node {
 public:
@@ -22,6 +23,11 @@ Node *createNode(std::string _date, Node *tree) {
 }
 
 class Window {
+public:
+    static Window& instance() {
+        static Window *instance = new Window();
+        return *instance;
+    }
 private:
     //Window
         sf::ContextSettings settings;
@@ -44,7 +50,6 @@ private:
         Node *tree;
         int option, pointer, gameOver;
         char question[50], answer[50];
-public:
     Window() {
         //Window
             settings.antialiasingLevel = 8;
@@ -77,6 +82,8 @@ public:
             gameOver = 0;
             question[50] = {};
             answer[50] = {};
+        //Call Window
+            showWindow(NULL, 1);
     }
     ~Window() {
         delete renderWindow;
@@ -112,82 +119,89 @@ public:
             questionAnswer->setPosition(42, 150);
             questionAnswer->setFillColor(sf::Color(255, 255, 255));
         //LoopWindow
-        while (renderWindow->isOpen()) {
-            pointer = 0;
-            option = 0;
-            //Background
-                if (gameOver == 1) {
-                    imgBackground->loadFromFile("Background/Akinator3.png");
-                }
-                else if (tree->right == NULL && tree->left == NULL) {
-                    imgBackground->loadFromFile("Background/Akinator1.png");
-                }
-                else {
-                    imgBackground->loadFromFile("Background/Akinator2.png");
-                }
-                background = new sf::Sprite(*imgBackground);
-            //Draw
-                renderWindow->clear(sf::Color::Cyan);
-                renderWindow->draw(*background);
-                renderWindow->draw(*nQuestion);
-                renderWindow->draw(*questionAnswer);
-                renderWindow->draw(*reset);
-                renderWindow->draw(*exit);
-                renderWindow->draw(*buttonYesQA);
-                renderWindow->draw(*buttonNopQA);
-                renderWindow->display();
-            //Pause
-                if (gameOver == 1) {
-                    Sleep(3000);
-                    gameOver = 0;
-                    showWindow(*&tree->root, 1);
-                }
-            //Events
-                while (renderWindow->pollEvent(eventWindow)) {
-                    if (eventWindow.type == sf::Event::MouseButtonReleased) {
-                        if (eventWindow.mouseButton.button == sf::Mouse::Left) {
-                            if(buttonYesQA->getGlobalBounds().contains(sf::Vector2f(sf::Mouse::getPosition(*renderWindow)))) {
-                                if (tree->right == NULL && tree->left == NULL) {
-                                    gameOver = 1;
+            while (renderWindow->isOpen()) {
+                pointer = 0;
+                option = 0;
+                //Background
+                    if (gameOver == 1) {
+                        imgBackground->loadFromFile("Background/Akinator3.png");
+                    }
+                    else if (gameOver == 2) {
+                        imgBackground->loadFromFile("Background/Akinator4.png");
+                    }
+                    else if (tree->right == NULL && tree->left == NULL) {
+                        imgBackground->loadFromFile("Background/Akinator1.png");
+                    }
+                    else {
+                        imgBackground->loadFromFile("Background/Akinator2.png");
+                    }
+                    background = new sf::Sprite(*imgBackground);
+                //Draw
+                    renderWindow->clear(sf::Color::Cyan);
+                    renderWindow->draw(*background);
+                    renderWindow->draw(*nQuestion);
+                    renderWindow->draw(*questionAnswer);
+                    renderWindow->draw(*reset);
+                    renderWindow->draw(*exit);
+                    renderWindow->draw(*buttonYesQA);
+                    renderWindow->draw(*buttonNopQA);
+                    renderWindow->display();
+                //Pause
+                    if (gameOver == 1) {
+                        Sleep(3000);
+                        gameOver = 0;
+                        showWindow(*&tree->root, 1);
+                    }
+                    else if (gameOver == 2) {
+                        gameOver = 0;
+                        //EnterQA
+                            std::cout << "\nEnter a question about your character:" <<  std::endl;
+                            fflush(stdin);
+                            std::cin.getline(question, 50);
+                            std::cout << "Enter the answer:" <<  std::endl;
+                            fflush(stdin);
+                            std::cin.getline(answer, 50);
+                        //AddNodes
+                            Node *new_nodeL = createNode(tree->date, *&tree->root);
+                            tree->left = new_nodeL;
+                            *&tree->date = question;
+                            Node *new_nodeR = createNode(answer, *&tree->root);
+                            tree->right = new_nodeR;
+                        //Reset
+                            showWindow(*&tree->root, 1);
+                    }
+                //Events
+                    while (renderWindow->pollEvent(eventWindow)) {
+                        if (eventWindow.type == sf::Event::MouseButtonReleased) {
+                            if (eventWindow.mouseButton.button == sf::Mouse::Left) {
+                                if(buttonYesQA->getGlobalBounds().contains(sf::Vector2f(sf::Mouse::getPosition(*renderWindow)))) {
+                                    if (tree->right == NULL && tree->left == NULL) {
+                                        gameOver = 1;
+                                    }
+                                    else {
+                                        showWindow(tree->right, count+1);
+                                    }
                                 }
-                                else {
-                                    showWindow(tree->right, count+1);
+                                else if(buttonNopQA->getGlobalBounds().contains(sf::Vector2f(sf::Mouse::getPosition(*renderWindow)))) {
+                                    if (tree->right == NULL && tree->left == NULL) {
+                                        gameOver = 2;
+                                    }
+                                    else {
+                                        showWindow(tree->left, count+1);
+                                    }
                                 }
-                            }
-                            else if(buttonNopQA->getGlobalBounds().contains(sf::Vector2f(sf::Mouse::getPosition(*renderWindow)))) {
-                                if (tree->right == NULL && tree->left == NULL) {
-                                    //EnterQA
-                                    std::cout << "\nEnter a question about your character:" <<  std::endl;
-                                    fflush(stdin);
-                                    std::cin.getline(question, 50);
-                                    std::cout << "Enter the answer:" <<  std::endl;
-                                    fflush(stdin);
-                                    std::cin.getline(answer, 50);
-                                    //AddNodes
-                                    Node *new_nodeL = createNode(tree->date, *&tree->root);
-                                    tree->left = new_nodeL;
-                                    *&tree->date = question;
-                                    Node *new_nodeR = createNode(answer, *&tree->root);
-                                    tree->right = new_nodeR;
-                                    //Reset
+                                else if(reset->getGlobalBounds().contains(sf::Vector2f(sf::Mouse::getPosition(*renderWindow)))) {
                                     showWindow(*&tree->root, 1);
                                 }
-                                else {
-                                    showWindow(tree->left, count+1);
+                                else if(exit->getGlobalBounds().contains(sf::Vector2f(sf::Mouse::getPosition(*renderWindow)))) {
+                                    goodbye();
                                 }
                             }
-                            else if(reset->getGlobalBounds().contains(sf::Vector2f(sf::Mouse::getPosition(*renderWindow)))) {
-                                showWindow(*&tree->root, 1);
-                            }
-                            else if(exit->getGlobalBounds().contains(sf::Vector2f(sf::Mouse::getPosition(*renderWindow)))) {
-                                goodbye();
-                            }
+                        }
+                        if (eventWindow.type == sf::Event::Closed) {
+                            renderWindow->close();
                         }
                     }
-                    if (eventWindow.type == sf::Event::Closed) {
-                        renderWindow->close();
-                    }
-                }
         }
     }
     int goodbye() {
@@ -199,7 +213,6 @@ public:
 };
 int main() {
     system("cls");
-    Window *window = new Window();
-    window->showWindow(NULL, 1);
+    Window::instance();
     return 0;
 }
