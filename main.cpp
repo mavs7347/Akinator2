@@ -1,8 +1,6 @@
 #include <iostream>
 #include <windows.h>
 #include <SFML/Graphics.hpp>
-#include <SFML/Audio.hpp>
-
 class Node {
 public:
     std::string date;
